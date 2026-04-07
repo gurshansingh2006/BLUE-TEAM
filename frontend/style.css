@@ -1,7 +1,6 @@
 /* Import Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Reset and Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -32,7 +31,6 @@ body::before {
     z-index: -1;
 }
 
-/* Navbar */
 .navbar {
     position: sticky;
     top: 0;
@@ -55,6 +53,27 @@ body::before {
     align-items: center;
 }
 
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-img {
+    height: 45px;
+    width: auto;
+    transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+    transform: scale(1.05);
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+}
+
 .logo h1 {
     font-size: 1.8rem;
     font-weight: 700;
@@ -64,6 +83,7 @@ body::before {
     background-clip: text;
     text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
     transition: text-shadow 0.3s ease;
+    margin: 0;
 }
 
 .logo h1:hover {
@@ -73,7 +93,7 @@ body::before {
 .logo .subtitle {
     font-size: 0.9rem;
     color: #b8c5d6;
-    margin-top: 0.2rem;
+    margin: 0.2rem 0 0 0;
 }
 
 .nav-links {
@@ -126,7 +146,6 @@ body::before {
     border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Hero Section */
 .hero {
     padding: 100px 20px 80px;
     text-align: center;
@@ -197,7 +216,84 @@ body::before {
     line-height: 1.7;
 }
 
-/* Features Section */
+.hero-cta {
+    margin: 2rem auto 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 1.75rem 1.5rem;
+    max-width: 560px;
+    width: 100%;
+    min-width: 320px;
+}
+
+.hero-cta input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.hero-cta input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 22px rgba(102, 126, 234, 0.28);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.hero-cta input::placeholder {
+    color: #b8c5d6;
+}
+
+.hero-scan-btn {
+    width: 100%;
+    max-width: 220px;
+    padding: 1rem 1.25rem;
+    border-radius: 18px;
+    border: none;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.3s ease;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.25);
+    backdrop-filter: blur(10px);
+}
+
+.hero-scan-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+    filter: brightness(1.05);
+}
+
+.hero-scan-btn:active {
+    transform: translateY(0);
+}
+
+@keyframes subtleFloat {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-3px);
+    }
+}
+
+
 .features {
     padding: 80px 20px;
     position: relative;
@@ -276,7 +372,6 @@ body::before {
     z-index: 1;
 }
 
-/* Auth Modal */
 .modal {
     display: none;
     position: fixed;
@@ -449,16 +544,49 @@ body.modal-open {
     overflow: hidden;
 }
 
-/* Mobile Responsiveness for Modal */
 @media (max-width: 768px) {
-    .modal-content {
-        width: 95%;
-        margin: 5% auto;
+    .navbar-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .logo-img {
+        height: 35px;
+    }
+
+    .logo h1 {
+        font-size: 1.5rem;
+    }
+
+    .logo .subtitle {
+        font-size: 0.8rem;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .hero-container {
+        padding: 2rem 1.5rem;
+        max-width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-heading {
+        font-size: 2rem;
+    }
+
+    .badge {
+        font-size: 0.8rem;
+    }
+
+    .feature-card {
         padding: 1.5rem;
     }
 }
 
-/* Breach and AI Sections */
 .breach-section, .ai-section, .user-breaches-section {
     padding: 80px 20px;
     text-align: center;
@@ -562,11 +690,172 @@ body.modal-open {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Responsive Design */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(102, 126, 234, 0.6); }
+}
+
+.hero, .features, .breach-section, .ai-section, .recent-checks-section, .user-breaches-section {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.hero-cta .hero-scan-btn {
+    animation: pulse 2s infinite;
+}
+
+.auth-btn {
+    animation: glow 3s infinite;
+}
+
+.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.success {
+    animation: fadeInUp 0.5s ease-out;
+    color: #4ade80 !important;
+}
+
+.error {
+    animation: fadeInUp 0.5s ease-out;
+    color: #f87171 !important;
+}
+
+.auth-btn::before, .hero-scan-btn::before, .breach-container button::before, .ai-container button::before, .user-breaches-container button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.auth-btn:hover::before, .hero-scan-btn:hover::before, .breach-container button:hover::before, .ai-container button:hover::before, .user-breaches-container button:hover::before {
+    left: 100%;
+}
+
+.modal-content {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.form-container.active {
+    animation: formSlideIn 0.3s ease-out;
+}
+
+.recent-checks-section {
+    padding: 80px 20px;
+    text-align: center;
+}
+
+.recent-checks-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.recent-checks-container h3 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+}
+
+#recentChecks {
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#recentChecks ul {
+    list-style: none;
+    padding: 0;
+}
+
+#recentChecks li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+#recentChecks li:hover {
+    background: rgba(255, 255, 255, 0.05);
+    padding-left: 10px;
+}
+
+#recentChecks li:last-child {
+    border-bottom: none;
+}
 @media (max-width: 768px) {
     .navbar-container {
         flex-direction: column;
         gap: 1rem;
+    }
+
+    .logo-img {
+        height: 35px;
+    }
+
+    .logo h1 {
+        font-size: 1.5rem;
+    }
+
+    .logo .subtitle {
+        font-size: 0.8rem;
     }
 
     .nav-links {

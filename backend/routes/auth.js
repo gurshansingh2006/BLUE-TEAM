@@ -4,10 +4,13 @@ const User = require('../models/User');
 
 const router = express.Router();
 
-// Register a new user
 router.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: 'An account with this email already exists. Please sign in instead.' });
+    }
     const user = new User({ username, password });
     await user.save();
     res.status(201).json({ message: 'User registered successfully' });
@@ -16,13 +19,15 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login user and return JWT token
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
-    if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    if (!user) {
+      return res.status(401).json({ message: 'No account found with this email. Please register first.' });
+    }
+    if (!(await user.comparePassword(password))) {
+      return res.status(401).json({ message: 'Incorrect password. Please try again.' });
     }
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secretkey', { expiresIn: '1h' });
     res.json({ token });
@@ -31,7 +36,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get user's stored breaches (protected)
 router.get('/breaches', async (req, res) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   if (!token) {
