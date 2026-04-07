@@ -1,15 +1,27 @@
 const express = require('express');
+const { check, validationResult } = require('express-validator');
 const { optionalAuth } = require('../middleware/auth');
 const { generateText } = require('../services/gemini');
 
 const router = express.Router();
+const MAX_PROMPT_LENGTH = 300;
 
-router.post('/suggest', optionalAuth, async (req, res) => {
-  const prompt = req.body?.prompt?.trim();
+const aiSuggestionValidation = [
+  check('prompt')
+    .trim()
+    .notEmpty()
+    .withMessage('Please enter a prompt for the AI assistant.')
+    .isLength({ max: MAX_PROMPT_LENGTH })
+    .withMessage(`Prompt must be ${MAX_PROMPT_LENGTH} characters or less.`)
+];
 
-  if (!prompt) {
-    return res.status(400).json({ error: 'Please enter a prompt for the AI assistant.' });
+router.post('/suggest', optionalAuth, aiSuggestionValidation, async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
+
+  const prompt = `${req.body.prompt}`.trim().slice(0, MAX_PROMPT_LENGTH);
 
   if (!process.env.GEMINI_API_KEY) {
     return res.status(503).json({ error: 'AI suggestions are not configured yet.' });

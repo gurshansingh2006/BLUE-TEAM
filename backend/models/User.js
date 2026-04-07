@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS) || 12;
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true, lowercase: true },
-  password: { type: String, required: true },
+  password: { type: String, required: true, select: false },
   breaches: [{ email: String, sites: [String], checkedAt: { type: Date, default: Date.now } }]
 });
 

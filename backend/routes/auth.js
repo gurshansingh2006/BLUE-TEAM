@@ -18,6 +18,8 @@ const authValidationRules = [
     .isString()
     .isLength({ min: MIN_PASSWORD_LENGTH })
     .withMessage(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`)
+    .matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).*$/)
+    .withMessage('Password must include at least one letter, one number, and one symbol.')
 ];
 
 router.post('/register', authValidationRules, async (req, res) => {
@@ -54,13 +56,9 @@ router.post('/login', authValidationRules, async (req, res) => {
     const username = normalizeUsername(req.body?.username);
     const password = req.body?.password || '';
 
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(401).json({ message: 'No account found with this email. Please register first.' });
-    }
-
-    if (!(await user.comparePassword(password))) {
-      return res.status(401).json({ message: 'Incorrect password. Please try again.' });
+    const user = await User.findOne({ username }).select('+password');
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
     const token = jwt.sign({ userId: user._id }, getJwtSecret(), { expiresIn: '1h' });
