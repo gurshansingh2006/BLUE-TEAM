@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { getJwtSecret, requireAuth } = require('../middleware/auth');
 
@@ -8,18 +9,26 @@ const MIN_PASSWORD_LENGTH = 8;
 
 const normalizeUsername = (username = '') => username.trim().toLowerCase();
 
-router.post('/register', async (req, res) => {
+const authValidationRules = [
+  check('username')
+    .trim()
+    .isEmail()
+    .withMessage('Please provide a valid email address.'),
+  check('password')
+    .isString()
+    .isLength({ min: MIN_PASSWORD_LENGTH })
+    .withMessage(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`)
+];
+
+router.post('/register', authValidationRules, async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   try {
     const username = normalizeUsername(req.body?.username);
     const password = req.body?.password || '';
-
-    if (!username || !password) {
-      return res.status(400).json({ message: 'Email and password are required.' });
-    }
-
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      return res.status(400).json({ message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.` });
-    }
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
@@ -35,14 +44,15 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', authValidationRules, async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   try {
     const username = normalizeUsername(req.body?.username);
     const password = req.body?.password || '';
-
-    if (!username || !password) {
-      return res.status(400).json({ message: 'Email and password are required.' });
-    }
 
     const user = await User.findOne({ username });
     if (!user) {
