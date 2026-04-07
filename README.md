@@ -1,5 +1,5 @@
 # BLUE-TEAM
-ITIAN CLUB&lt;GNDEC. HACKTHON
+ITIAN CLUB ,GNDEC. HACKTHON
 
 #Project tech Stack
 ##**frontEnd**
