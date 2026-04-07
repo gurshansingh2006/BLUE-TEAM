@@ -1,17 +1,9 @@
 # GUARDIUM - Cyber Security Breach Detection App
 
-## Quick Start
-
-*Double-click start-guardium.bat* to launch the application!
-
 The batch file will:
 - Install dependencies (if needed)
 - Start the secure backend server
 - Open GUARDIUM in your browser
-
-## Access Your App
-
-Once started, visit: *http://localhost:3000*
 
 ## Security Features
 
@@ -57,27 +49,6 @@ hackthon/
 - *Secure Authentication* - Optional user accounts with saved breach history
 - *Animated UI* - Modern interface with particles, scanning effects, and AI assistant
 - *Risk Assessment* - Detailed security risk scoring and actionable advice
-
-## Manual Setup (Alternative)
-
-If you prefer manual setup:
-
-bash
-# Backend setup
-cd backend
-npm install
-npm start
-
-# Frontend is served automatically at http://localhost:3000
-
-
-## API Endpoints
-
-- GET /health - Server health check
-- POST /auth/register - User registration
-- POST /auth/login - User authentication
-- GET /breach/check-email/:email - Breach scanning
-- POST /ai/suggest - AI security advice
 
 ## Security Best Practices Implemented
 
