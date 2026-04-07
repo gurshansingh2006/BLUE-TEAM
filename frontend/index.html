@@ -10,6 +10,41 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Background Effects -->
+    <div class="particles" id="particles"></div>
+    <div class="grid-overlay"></div>
+    <div class="noise-overlay"></div>
+
+    <!-- Scanning Animation Overlay -->
+    <div class="scanning-overlay" id="scanningOverlay">
+        <div class="scanning-content">
+            <div class="scanning-icon">🔍</div>
+            <div class="scanning-text" id="scanningText">Scanning breach databases...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="scanning-steps">
+                <div class="scanning-step active" id="step1">Initializing security scan...</div>
+                <div class="scanning-step" id="step2">Connecting to breach databases...</div>
+                <div class="scanning-step" id="step3">Analyzing patterns...</div>
+                <div class="scanning-step" id="step4">Generating AI recommendations...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dark Web Scan Simulation -->
+    <div class="dark-web-scan" id="darkWebScan">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <span class="terminal-title">DARK WEB SCAN TERMINAL</span>
+                <span>SECURE CONNECTION</span>
+            </div>
+            <div class="terminal-content">
+                <div class="terminal-text" id="terminalText"></div>
+            </div>
+        </div>
+    </div>
+
     <header class="navbar">
         <div class="navbar-container">
             <div class="logo">
@@ -222,6 +257,15 @@
             </div>
         </div>
     </footer>
+
+    <!-- AI Assistant -->
+    <div class="ai-assistant" id="aiAssistant"></div>
+    <div class="ai-chat" id="aiChat">
+        <div class="ai-chat-messages" id="aiChatMessages">
+            <div class="ai-message">Hi! I'm your AI security assistant. Ask me anything about cybersecurity!</div>
+        </div>
+        <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Ask a security question...">
+    </div>
 
     <script src="script.js"></script>
 </body>

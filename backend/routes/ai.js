@@ -1,6 +1,6 @@
 const express = require('express');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { optionalAuth } = require('../middleware/auth');
+const { generateText } = require('../services/gemini');
 
 const router = express.Router();
 
@@ -16,13 +16,9 @@ router.post('/suggest', optionalAuth, async (req, res) => {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(
+    const text = await generateText(
       `You are a cybersecurity assistant. Give concise, practical advice with clear action steps.\n\nUser request: ${prompt}`
     );
-    const response = await result.response;
-    const text = response.text().trim();
 
     res.json({ suggestion: text || 'No suggestion was generated.' });
   } catch (error) {
