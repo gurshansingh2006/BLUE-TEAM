@@ -4,7 +4,8 @@ const bcrypt = require('bcryptjs');
 // User schema definition
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
+  password: { type: String, required: true },
+  breaches: [{ email: String, sites: [String], checkedAt: { type: Date, default: Date.now } }]
 });
 
 // Pre-save middleware to hash password

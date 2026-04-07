@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GUARDIUM - Financial Security</title>
+    <title>GUARDIUM - Cyber Security</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,21 +14,51 @@
         <div class="navbar-container">
             <div class="logo">
                 <h1>GUARDIUM</h1>
-                <p class="subtitle">Financial Security</p>
+                <p class="subtitle">Cyber Security</p>
             </div>
             <nav class="nav-links">
-                <a href="#" class="nav-link">Sign In</a>
-                <a href="#" class="nav-link cta">Get Started</a>
+                <a href="#" class="nav-link" id="signUpLink">Sign Up</a>
+                <a href="#" class="nav-link cta" id="getStartedLink">Get Started</a>
             </nav>
         </div>
     </header>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="registerFormContainer" class="form-container active">
+                <h3>Create Your GUARDIUM Account</h3>
+                <form id="registerForm">
+                    <input type="text" id="regName" placeholder="Full Name" required>
+                    <input type="email" id="regEmail" placeholder="Email Address" required>
+                    <input type="password" id="regPassword" placeholder="Password" required>
+                    <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
+                    <button type="submit" class="auth-btn">Create Account</button>
+                </form>
+                <p id="registerMessage"></p>
+                <p class="auth-switch">Already have an account? <a href="#" id="switchToLogin">Sign In</a></p>
+            </div>
+            <div id="loginFormContainer" class="form-container">
+                <h3>Sign In to GUARDIUM</h3>
+                <form id="loginForm">
+                    <input type="email" id="loginEmail" placeholder="Email Address" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <button type="submit" class="auth-btn">Sign In</button>
+                </form>
+                <p id="loginMessage"></p>
+                <p class="auth-switch">Don't have an account? <a href="#" id="switchToRegister">Sign Up</a></p>
+            </div>
+        </div>
+    </div>
 
     <main>
         <section class="hero">
             <div class="hero-container">
                 <div class="badge">AI-Powered Security Scanner</div>
-                <h2 class="hero-heading">Protect Your Financial Identity</h2>
-                <p class="hero-subheading">Advanced AI technology to safeguard your financial data from cyber threats. Get real-time protection and peace of mind.</p>
+                <h2 class="hero-heading">Protect Your Digital Identity</h2>
+                <p class="hero-subheading">Advanced AI technology to safeguard your digital data from cyber threats. Get real-time protection and peace of mind.</p>
             </div>
         </section>
 
@@ -49,31 +79,35 @@
             </div>
         </section>
 
-        <!-- Login Form Section -->
-        <section class="login-section" id="loginSection" style="display: none;">
-            <div class="login-container">
-                <h3>Sign In to GUARDIUM</h3>
-                <form id="loginForm">
-                    <input type="text" id="username" placeholder="Username" required>
-                    <input type="password" id="password" placeholder="Password" required>
-                    <button type="submit">Login</button>
-                </form>
-                <p id="loginMessage"></p>
-                <p>Don't have an account? <a href="#" id="registerLink">Register here</a></p>
+        <!-- Breach Check Section -->
+        <section class="breach-section" id="breachSection" style="display: none;">
+            <div class="breach-container">
+                <h3>Check Email for Breaches</h3>
+                <input type="email" id="breachEmail" placeholder="Enter your email" required>
+                <button id="checkBreachBtn">Check Breach</button>
+                <p id="breachMessage"></p>
+                <div id="breachResults"></div>
             </div>
         </section>
 
-        <!-- Register Form Section -->
-        <section class="register-section" id="registerSection" style="display: none;">
-            <div class="register-container">
-                <h3>Register for GUARDIUM</h3>
-                <form id="registerForm">
-                    <input type="text" id="regUsername" placeholder="Username" required>
-                    <input type="password" id="regPassword" placeholder="Password" required>
-                    <button type="submit">Register</button>
-                </form>
-                <p id="registerMessage"></p>
-                <p>Already have an account? <a href="#" id="backToLoginLink">Sign In</a></p>
+        <!-- AI Suggestion Section -->
+        <section class="ai-section" id="aiSection" style="display: none;">
+            <div class="ai-container">
+                <h3>AI Security Suggestions</h3>
+                <textarea id="aiPrompt" placeholder="Ask for security advice..." required></textarea>
+                <button id="getSuggestionBtn">Get Suggestion</button>
+                <p id="aiMessage"></p>
+                <div id="aiResults"></div>
+            </div>
+        </section>
+
+        <!-- User Breaches Section -->
+        <section class="user-breaches-section" id="userBreachesSection" style="display: none;">
+            <div class="user-breaches-container">
+                <h3>Your Stored Breaches</h3>
+                <button id="loadBreachesBtn">Load My Breaches</button>
+                <p id="breachesMessage"></p>
+                <div id="breachesList"></div>
             </div>
         </section>
     </main>

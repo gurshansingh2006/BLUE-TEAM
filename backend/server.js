@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const authRoutes = require('./routes/auth');
+const breachRoutes = require('./routes/breach');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 
@@ -23,6 +25,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/hackathon
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/breach', breachRoutes);
+app.use('/ai', aiRoutes);
 
 // Root route to serve frontend
 app.get('/', (req, res) => {
