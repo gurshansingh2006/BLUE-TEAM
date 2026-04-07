@@ -6,38 +6,48 @@
     </linearGradient>
     <linearGradient id="lockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#e0e7ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f0f4ff;stop-opacity:1" />
     </linearGradient>
+    <filter id="sharpEdge">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0" />
+    </filter>
   </defs>
 
-  <!-- Broader shield shape with classic proportions -->
-  <path d="M25 2 C32 2 42 5 42 12 L42 28 C42 38 36 45 25 48 C14 45 8 38 8 28 L8 12 C8 5 18 2 25 2 Z"
+  <!-- Refined, broader shield shape with sharp edges -->
+  <path d="M25 2 L40 6 L40 22 C40 34 32 43 25 46 C18 43 10 34 10 22 L10 6 Z"
         fill="url(#shieldGradient)"
         stroke="#ffffff"
-        stroke-width="1.2"
-        opacity="0.95"/>
+        stroke-width="1"
+        stroke-linejoin="miter"
+        filter="url(#sharpEdge)"/>
 
-  <!-- Enhanced lock with more detail -->
-  <g transform="translate(19,22)">
-    <!-- Lock body -->
-    <rect x="3" y="7" width="10" height="8" rx="2" ry="2" fill="url(#lockGradient)" stroke="#667eea" stroke-width="1"/>
-    <!-- Lock shackle -->
-    <path d="M5 7 C5 5 6 3 8 3 C10 3 11 5 11 7" fill="none" stroke="#667eea" stroke-width="1.5" stroke-linecap="round"/>
-    <!-- Keyhole -->
-    <circle cx="8" cy="11" r="1.5" fill="#667eea"/>
-    <rect x="7.5" y="9" width="1" height="4" fill="#ffffff"/>
-  </g>
-
-  <!-- Subtle inner highlight -->
-  <path d="M25 4 C31 4 40 6 40 12 L40 28 C40 36 34 42 25 46 C16 42 10 36 10 28 L10 12 C10 6 19 4 25 4 Z"
+  <!-- Inner highlight for depth -->
+  <path d="M26 3 L38 6.5 L38 22 C38 32 31 40 25 43.5 C20 40 12.5 32 12.5 22 L12.5 7 Z"
         fill="none"
-        stroke="rgba(255,255,255,0.3)"
-        stroke-width="0.5"/>
-
-  <!-- Outer glow effect -->
-  <path d="M25 1 C33 1 44 4 44 12 L44 28 C44 39 37 47 25 50 C13 47 6 39 6 28 L6 12 C6 4 17 1 25 1 Z"
-        fill="none"
-        stroke="url(#shieldGradient)"
+        stroke="rgba(255,255,255,0.25)"
         stroke-width="0.8"
-        opacity="0.4"/>
+        stroke-linejoin="miter"/>
+
+  <!-- Centered lock group -->
+  <g transform="translate(25, 25)">
+    <!-- Lock body (main rectangle) -->
+    <rect x="-3.5" y="-0.5" width="7" height="6" rx="1.2" ry="1.2" 
+          fill="url(#lockGradient)" 
+          stroke="#667eea" 
+          stroke-width="0.8"/>
+    
+    <!-- Lock shackle (top curved part) -->
+    <path d="M-2.5 -0.5 Q-2.5 -3.5 0 -3.5 Q2.5 -3.5 2.5 -0.5" 
+          fill="none" 
+          stroke="#ffffff" 
+          stroke-width="1.2" 
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+    
+    <!-- Keyhole dot -->
+    <circle cx="0" cy="1.5" r="0.9" fill="#667eea"/>
+    
+    <!-- Keyhole stem -->
+    <rect x="-0.35" y="2.5" width="0.7" height="2" fill="#667eea" rx="0.3"/>
+  </g>
 </svg>

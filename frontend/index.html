@@ -20,8 +20,10 @@
                 </div>
             </div>
             <nav class="nav-links">
+                <span class="nav-status" id="authStatus">Guest Mode</span>
                 <a href="#" class="nav-link" id="signUpLink">Sign Up</a>
                 <a href="#" class="nav-link cta" id="getStartedLink">Get Started</a>
+                <button type="button" class="nav-link nav-logout hidden" id="logoutBtn">Log Out</button>
             </nav>
         </div>
     </header>
@@ -33,7 +35,6 @@
             <div id="registerFormContainer" class="form-container active">
                 <h3>Create Your GUARDIUM Account</h3>
                 <form id="registerForm">
-                    <input type="text" id="regName" placeholder="Full Name" required>
                     <input type="email" id="regEmail" placeholder="Email Address" required>
                     <input type="password" id="regPassword" placeholder="Password" required>
                     <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required>
@@ -65,27 +66,89 @@
                     <input type="email" id="heroEmail" placeholder="Enter your email address" required>
                     <button type="button" class="hero-scan-btn">Scan Now</button>
                 </div>
+                <div id="breachDashboard" class="breach-dashboard hidden">
+                    <div class="dashboard-card status-card">
+                        <div class="card-header">
+                            <h3>Scan Results</h3>
+                            <div class="status-indicator" id="statusIndicator">
+                                <span class="status-text">Scanning...</span>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="status-details">
+                                <div class="status-item">
+                                    <span class="label">Email:</span>
+                                    <span class="value" id="scannedEmail">-</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="label">Last Checked:</span>
+                                    <span class="value" id="lastChecked">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card breach-details-card">
+                        <div class="card-header">
+                            <h3>Breach Details</h3>
+                        </div>
+                        <div class="card-content">
+                            <div id="breachList" class="breach-list">
+                                <div class="no-breaches">
+                                    <div class="shield-mark" aria-hidden="true">OK</div>
+                                    <p>No breaches detected</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card risk-card">
+                        <div class="card-header">
+                            <h3>Risk Assessment</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="risk-level" id="riskLevel">
+                                <div class="risk-indicator">
+                                    <span class="risk-text">Low Risk</span>
+                                    <div class="risk-bar">
+                                        <div class="risk-fill" style="width: 20%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card recommendations-card">
+                        <div class="card-header">
+                            <h3>Security Recommendations</h3>
+                        </div>
+                        <div class="card-content">
+                            <ul id="recommendationsList" class="recommendations-list">
+                                <li>Use unique passwords for each account</li>
+                                <li>Enable two-factor authentication</li>
+                                <li>Monitor your accounts regularly</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
         <section class="features">
             <div class="features-container">
                 <div class="feature-card">
-                    <h3>Breach Detection</h3>
-                    <p>Instantly detect and alert on data breaches affecting your financial information.</p>
+                    <h3>🔍 Breach Detection</h3>
+                    <p>Real-time email breach scanning using XposedOrNot API. Instantly check if your data has been compromised in known breaches.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>AI Risk Analysis</h3>
-                    <p>Leverage machine learning to analyze and predict potential security risks.</p>
+                    <h3>🤖 AI Analysis</h3>
+                    <p>Powered by Google Gemini AI for intelligent breach explanations and personalized security recommendations.</p>
                 </div>
                 <div class="feature-card">
-                    <h3>Security Advice</h3>
-                    <p>Receive personalized recommendations to strengthen your financial security posture.</p>
+                    <h3>🔐 Smart Authentication</h3>
+                    <p>Optional user accounts with saved history, or use anonymously with tab-only recent checks. Your choice, your privacy.</p>
                 </div>
             </div>
         </section>
 
-        <section class="breach-section" id="breachSection" style="display: none;">
+        <section class="breach-section auth-only-section" id="breachSection">
             <div class="breach-container">
                 <h3>Check Email for Breaches</h3>
                 <input type="email" id="breachEmail" placeholder="Enter your email" required>
@@ -95,7 +158,7 @@
             </div>
         </section>
 
-        <section class="ai-section" id="aiSection" style="display: none;">
+        <section class="ai-section auth-only-section" id="aiSection">
             <div class="ai-container">
                 <h3>AI Security Suggestions</h3>
                 <textarea id="aiPrompt" placeholder="Ask for security advice..." required></textarea>
@@ -108,12 +171,12 @@
         <section class="recent-checks-section" id="recentChecksSection" style="display: block;">
             <div class="recent-checks-container">
                 <h3>Recent Breach Checks</h3>
-                <p>Your recent checks (cleared on page close):</p>
+                <p>Your recent checks in this tab (cleared when the tab closes):</p>
                 <div id="recentChecks"></div>
             </div>
         </section>
 
-        <section class="user-breaches-section" id="userBreachesSection" style="display: none;">
+        <section class="user-breaches-section auth-only-section" id="userBreachesSection">
             <div class="user-breaches-container">
                 <h3>Your Stored Breaches</h3>
                 <button id="loadBreachesBtn" class="load-btn">Load My Breaches</button>
@@ -122,6 +185,43 @@
             </div>
         </section>
     </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="logo.svg" alt="GUARDIUM Logo" class="footer-logo-img">
+                    <div class="footer-logo-text">
+                        <h3>GUARDIUM</h3>
+                        <p>AI Cyber Security Assistant</p>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-section">
+                        <h4>Features</h4>
+                        <ul>
+                            <li><a href="#breachSection">Breach Detection</a></li>
+                            <li><a href="#aiSection">AI Analysis</a></li>
+                            <li><a href="#userBreachesSection">History Tracking</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-section">
+                        <h4>Tech Stack</h4>
+                        <ul>
+                            <li>Node.js & Express</li>
+                            <li>JWT Authentication</li>
+                            <li>Responsive Design</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 GUARDIUM. Built for Hackathon. All rights reserved.</p>
+                <p>Protecting digital identities with AI-powered security.</p>
+            </div>
+        </div>
+    </footer>
 
     <script src="script.js"></script>
 </body>

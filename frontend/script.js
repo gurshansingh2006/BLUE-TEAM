@@ -1,41 +1,239 @@
-document.querySelector('.hero-scan-btn').addEventListener('click', () => {
-    const email = document.getElementById('heroEmail').value;
-    if (email) {
-        document.getElementById('breachEmail').value = email;
-        document.getElementById('breachSection').scrollIntoView({ behavior: 'smooth' });
-        document.getElementById('checkBreachBtn').click();
-    } else {
+const TOKEN_KEY = 'token';
+const USER_EMAIL_KEY = 'userEmail';
+const ANONYMOUS_BREACHES_KEY = 'anonymousBreaches';
+const DEFAULT_SECURITY_STEPS = [
+    'Use unique passwords for each account.',
+    'Enable two-factor authentication wherever it is available.',
+    'Review sensitive accounts for suspicious sign-ins or password reset emails.'
+];
+
+const modal = document.getElementById('authModal');
+const closeBtn = document.querySelector('.close');
+const signUpLink = document.getElementById('signUpLink');
+const getStartedLink = document.getElementById('getStartedLink');
+const logoutBtn = document.getElementById('logoutBtn');
+const authStatus = document.getElementById('authStatus');
+const authOnlySections = Array.from(document.querySelectorAll('.auth-only-section'));
+
+document.querySelector('.hero-scan-btn').addEventListener('click', async () => {
+    const email = normalizeEmail(document.getElementById('heroEmail').value);
+
+    if (!email) {
         alert('Please enter your email address first.');
+        return;
     }
+
+    document.getElementById('breachEmail').value = email;
+    await performBreachCheck(email);
 });
 
-document.getElementById('signUpLink').addEventListener('click', (e) => {
-    e.preventDefault();
+signUpLink.addEventListener('click', (event) => {
+    event.preventDefault();
+
+    if (isAuthenticated()) {
+        document.getElementById('breachSection').scrollIntoView({ behavior: 'smooth' });
+        return;
+    }
+
     showModal('register');
 });
 
-document.getElementById('getStartedLink').addEventListener('click', (e) => {
-    e.preventDefault();
+getStartedLink.addEventListener('click', (event) => {
+    event.preventDefault();
+
+    if (isAuthenticated()) {
+        document.getElementById('breachSection').scrollIntoView({ behavior: 'smooth' });
+        return;
+    }
+
     showModal('register');
 });
 
-document.getElementById('switchToRegister').addEventListener('click', (e) => {
-    e.preventDefault();
-    switchForm('register');
-});
-
-document.getElementById('switchToLogin').addEventListener('click', (e) => {
-    e.preventDefault();
-    switchForm('login');
-});
-
-closeBtn.addEventListener('click', () => {
+logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_EMAIL_KEY);
+    setAuthenticatedUI(false);
     closeModal();
 });
 
-modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
+document.getElementById('switchToRegister').addEventListener('click', (event) => {
+    event.preventDefault();
+    switchForm('register');
+});
+
+document.getElementById('switchToLogin').addEventListener('click', (event) => {
+    event.preventDefault();
+    switchForm('login');
+});
+
+closeBtn.addEventListener('click', closeModal);
+
+modal.addEventListener('click', (event) => {
+    if (event.target === modal || event.target.classList.contains('modal-overlay')) {
         closeModal();
+    }
+});
+
+document.getElementById('loginForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const email = normalizeEmail(document.getElementById('loginEmail').value);
+    const password = document.getElementById('loginPassword').value;
+    const button = event.submitter;
+
+    setLoading(button, true);
+
+    try {
+        const result = await fetchJson('/auth/login', {
+            method: 'POST',
+            headers: buildHeaders(true, false),
+            body: JSON.stringify({ username: email, password })
+        });
+
+        localStorage.setItem(TOKEN_KEY, result.token);
+        localStorage.setItem(USER_EMAIL_KEY, result.user?.email || email);
+        setMessage('loginMessage', 'Login successful. Your dashboard is ready.', 'success');
+        setAuthenticatedUI(true, result.user?.email || email);
+
+        window.setTimeout(() => {
+            closeModal();
+            document.getElementById('breachSection').scrollIntoView({ behavior: 'smooth' });
+        }, 500);
+    } catch (error) {
+        setMessage('loginMessage', error.message, 'error');
+    } finally {
+        setLoading(button, false);
+    }
+});
+
+document.getElementById('registerForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const email = normalizeEmail(document.getElementById('regEmail').value);
+    const password = document.getElementById('regPassword').value;
+    const confirmPassword = document.getElementById('regConfirmPassword').value;
+    const button = event.submitter;
+
+    if (password !== confirmPassword) {
+        setMessage('registerMessage', 'Passwords do not match.', 'error');
+        return;
+    }
+
+    setLoading(button, true);
+
+    try {
+        const result = await fetchJson('/auth/register', {
+            method: 'POST',
+            headers: buildHeaders(true, false),
+            body: JSON.stringify({ username: email, password })
+        });
+
+        setMessage('registerMessage', result.message, 'success');
+        document.getElementById('loginEmail').value = email;
+        document.getElementById('loginPassword').focus();
+
+        window.setTimeout(() => {
+            switchForm('login');
+        }, 700);
+    } catch (error) {
+        setMessage('registerMessage', error.message, 'error');
+    } finally {
+        setLoading(button, false);
+    }
+});
+
+document.getElementById('checkBreachBtn').addEventListener('click', async () => {
+    const email = normalizeEmail(document.getElementById('breachEmail').value);
+    const button = document.getElementById('checkBreachBtn');
+
+    if (!email) {
+        setMessage('breachMessage', 'Please enter an email address.', 'error');
+        return;
+    }
+
+    setLoading(button, true);
+
+    try {
+        const result = await fetchBreachData(email);
+        document.getElementById('heroEmail').value = email;
+        renderBreachResults(result);
+        updateDashboard(result);
+    } catch (error) {
+        setMessage('breachMessage', error.message, 'error');
+        document.getElementById('breachResults').innerHTML = '';
+    } finally {
+        setLoading(button, false);
+    }
+});
+
+document.getElementById('getSuggestionBtn').addEventListener('click', async () => {
+    const prompt = document.getElementById('aiPrompt').value.trim();
+    const button = document.getElementById('getSuggestionBtn');
+
+    if (!prompt) {
+        setMessage('aiMessage', 'Please enter a prompt.', 'error');
+        return;
+    }
+
+    setLoading(button, true);
+
+    try {
+        const result = await fetchJson('/ai/suggest', {
+            method: 'POST',
+            headers: buildHeaders(true),
+            body: JSON.stringify({ prompt })
+        });
+
+        setMessage('aiMessage', 'Suggestion ready.', 'success');
+        document.getElementById('aiResults').textContent = result.suggestion;
+    } catch (error) {
+        setMessage('aiMessage', error.message, 'error');
+        document.getElementById('aiResults').textContent = '';
+    } finally {
+        setLoading(button, false);
+    }
+});
+
+document.getElementById('loadBreachesBtn').addEventListener('click', async () => {
+    const button = document.getElementById('loadBreachesBtn');
+
+    if (!isAuthenticated()) {
+        setMessage('breachesMessage', 'Please sign in to view your saved breach history.', 'error');
+        return;
+    }
+
+    setLoading(button, true);
+
+    try {
+        const result = await fetchJson('/auth/breaches', {
+            headers: buildHeaders(false)
+        });
+
+        if (!result.breaches?.length) {
+            setMessage('breachesMessage', 'No saved breach checks yet.', 'success');
+            document.getElementById('breachesList').innerHTML = '<p class="empty-state">Run a breach check while signed in to save it here.</p>';
+            return;
+        }
+
+        setMessage('breachesMessage', 'Saved breach history loaded.', 'success');
+        document.getElementById('breachesList').innerHTML = `
+            <div class="history-list">
+                ${result.breaches.map((breach) => `
+                    <div class="history-item">
+                        <div class="history-email">${escapeHtml(breach.email)}</div>
+                        <div class="history-meta">Checked on ${escapeHtml(new Date(breach.checkedAt).toLocaleString())}</div>
+                        <div class="chip-list">
+                            ${(breach.sites || []).map((site) => `<span class="chip">${escapeHtml(site)}</span>`).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } catch (error) {
+        setMessage('breachesMessage', error.message, 'error');
+        document.getElementById('breachesList').innerHTML = '';
+    } finally {
+        setLoading(button, false);
     }
 });
 
@@ -48,6 +246,7 @@ function showModal(formType) {
 function closeModal() {
     modal.style.display = 'none';
     document.body.classList.remove('modal-open');
+    resetAuthMessages();
 }
 
 function switchForm(formType) {
@@ -63,224 +262,312 @@ function switchForm(formType) {
     }
 }
 
-// Login form handler
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
+function setAuthenticatedUI(authenticated, email = localStorage.getItem(USER_EMAIL_KEY) || '') {
+    authStatus.textContent = authenticated ? `Signed in: ${email}` : 'Guest Mode';
+    signUpLink.classList.toggle('hidden', authenticated);
+    getStartedLink.classList.toggle('hidden', authenticated);
+    logoutBtn.classList.toggle('hidden', !authenticated);
 
-    try {
-        const response = await fetch('/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: email, password })
-        });
-        const result = await response.json();
-        if (response.ok) {
-            document.getElementById('loginMessage').textContent = 'Login successful!';
-            document.getElementById('loginMessage').style.color = 'green';
-            localStorage.setItem('token', result.token);
-            setTimeout(() => {
-                closeModal();
-                alert('Welcome to GUARDIUM!');
-                document.getElementById('breachSection').style.display = 'block';
-                document.getElementById('aiSection').style.display = 'block';
-                document.getElementById('userBreachesSection').style.display = 'block';
-                document.getElementById('recentChecksSection').style.display = 'none';
-                document.getElementById('breachSection').scrollIntoView({ behavior: 'smooth' });
-            }, 1000);
-        } else {
-            document.getElementById('loginMessage').textContent = result.message;
-            document.getElementById('loginMessage').style.color = 'red';
-        }
-    } catch (error) {
-        document.getElementById('loginMessage').textContent = 'Error: ' + error.message;
-        document.getElementById('loginMessage').style.color = 'red';
-    }
-});
-
-// Register form handler
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPassword').value;
-    const confirmPassword = document.getElementById('regConfirmPassword').value;
-
-    if (password !== confirmPassword) {
-        document.getElementById('registerMessage').textContent = 'Passwords do not match';
-        document.getElementById('registerMessage').style.color = 'red';
-        return;
-    }
-
-    try {
-        const response = await fetch('/auth/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: email, password })
-        });
-        const result = await response.json();
-        if (response.ok) {
-            document.getElementById('registerMessage').textContent = 'Registration successful! Please sign in.';
-            document.getElementById('registerMessage').style.color = 'green';
-            setTimeout(() => {
-                switchForm('login');
-            }, 2000);
-        } else {
-            document.getElementById('registerMessage').textContent = result.message;
-            document.getElementById('registerMessage').style.color = 'red';
-        }
-    } catch (error) {
-        document.getElementById('registerMessage').textContent = 'Error: ' + error.message;
-        document.getElementById('registerMessage').style.color = 'red';
-    }
-});
-
-document.getElementById('checkBreachBtn').addEventListener('click', async () => {
-    const email = document.getElementById('breachEmail').value;
-    if (!email) {
-        document.getElementById('breachMessage').textContent = 'Please enter an email.';
-        document.getElementById('breachMessage').className = 'error';
-        return;
-    }
-    const token = localStorage.getItem('token');
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-    const button = document.getElementById('checkBreachBtn');
-    button.classList.add('loading');
-    button.disabled = true;
-    try {
-        const response = await fetch(`/breach/check-email/${email}`, { headers });
-        const result = await response.json();
-        if (result.status === 'success') {
-            document.getElementById('breachMessage').textContent = 'Breaches found!';
-            document.getElementById('breachMessage').className = 'success';
-            let html = '<ul>';
-            result.breaches.forEach(breach => {
-                html += `<li><strong>${breach.Name}</strong> (${breach.Domain}): ${breach.DataClasses.join(', ')}</li>`;
-            });
-            html += '</ul>';
-            if (result.explanation) {
-                html += `<h4>Explanation:</h4><p>${result.explanation}</p>`;
-            }
-            if (result.suggestions) {
-                html += `<h4>Suggestions:</h4><p>${result.suggestions}</p>`;
-            }
-            document.getElementById('breachResults').innerHTML = html;
-            const checkData = {
-                email,
-                breaches: result.breaches.map(b => ({ name: b.Name, domain: b.Domain, data: b.DataClasses })),
-                checkedAt: new Date().toISOString()
-            };
-            if (token) {
-            } else {
-                const recent = JSON.parse(localStorage.getItem('anonymousBreaches') || '[]');
-                recent.unshift(checkData);
-                if (recent.length > 10) recent.pop();
-                localStorage.setItem('anonymousBreaches', JSON.stringify(recent));
-                displayRecentChecks();
-            }
-        } else {
-            document.getElementById('breachMessage').textContent = 'No breaches found.';
-            document.getElementById('breachMessage').className = 'success';
-            document.getElementById('breachResults').innerHTML = '';
-        }
-    } catch (error) {
-        document.getElementById('breachMessage').textContent = 'Error: ' + error.message;
-        document.getElementById('breachMessage').className = 'error';
-    } finally {
-        button.classList.remove('loading');
-        button.disabled = false;
-    }
-});
-
-document.getElementById('getSuggestionBtn').addEventListener('click', async () => {
-    const prompt = document.getElementById('aiPrompt').value;
-    if (!prompt) {
-        document.getElementById('aiMessage').textContent = 'Please enter a prompt.';
-        document.getElementById('aiMessage').className = 'error';
-        return;
-    }
-    const token = localStorage.getItem('token');
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-    const button = document.getElementById('getSuggestionBtn');
-    button.classList.add('loading');
-    button.disabled = true;
-    try {
-        const response = await fetch('/ai/suggest', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ prompt })
-        });
-        const result = await response.json();
-        if (response.ok) {
-            document.getElementById('aiMessage').textContent = 'Suggestion:';
-            document.getElementById('aiMessage').className = 'success';
-            document.getElementById('aiResults').textContent = result.suggestion;
-        } else {
-            document.getElementById('aiMessage').textContent = result.error;
-            document.getElementById('aiMessage').className = 'error';
-        }
-    } catch (error) {
-        document.getElementById('aiMessage').textContent = 'Error: ' + error.message;
-        document.getElementById('aiMessage').className = 'error';
-    } finally {
-        button.classList.remove('loading');
-        button.disabled = false;
-    }
-});
-
-function displayRecentChecks() {
-    const recent = JSON.parse(localStorage.getItem('anonymousBreaches') || '[]');
-    const recentDiv = document.getElementById('recentChecks');
-    if (recent.length === 0) {
-        recentDiv.innerHTML = '<p>No recent checks.</p>';
-        return;
-    }
-    let html = '<ul>';
-    recent.forEach(check => {
-        html += `<li><strong>${check.email}</strong> - ${check.breaches.length} breaches found (${new Date(check.checkedAt).toLocaleString()})</li>`;
+    authOnlySections.forEach((section) => {
+        section.classList.toggle('show', authenticated);
     });
-    html += '</ul>';
-    recentDiv.innerHTML = html;
+
+    document.getElementById('recentChecksSection').style.display = authenticated ? 'none' : 'block';
+
+    if (!authenticated) {
+        setMessage('breachMessage', '', '');
+        setMessage('aiMessage', '', '');
+        setMessage('breachesMessage', '', '');
+        document.getElementById('breachResults').innerHTML = '';
+        document.getElementById('aiResults').textContent = '';
+        document.getElementById('breachesList').innerHTML = '';
+        displayRecentChecks();
+    }
 }
 
-document.getElementById('loadBreachesBtn').addEventListener('click', async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        document.getElementById('breachesMessage').textContent = 'Please sign in to view your breaches.';
-        document.getElementById('breachesMessage').className = 'error';
+async function performBreachCheck(email) {
+    const button = document.querySelector('.hero-scan-btn');
+    const dashboard = document.getElementById('breachDashboard');
+    const statusText = document.querySelector('.status-text');
+
+    setLoading(button, true);
+    dashboard.classList.remove('hidden');
+    dashboard.classList.add('show');
+    statusText.textContent = 'Scanning...';
+    statusText.className = 'status-text scanning';
+    document.getElementById('scannedEmail').textContent = email;
+    document.getElementById('lastChecked').textContent = new Date().toLocaleString();
+
+    try {
+        const result = await fetchBreachData(email);
+        updateDashboard(result);
+        renderBreachResults(result);
+    } catch (error) {
+        updateDashboard({
+            checkedEmail: email,
+            breached: false,
+            breachCount: 0,
+            breaches: [],
+            explanation: error.message,
+            suggestions: DEFAULT_SECURITY_STEPS,
+            errored: true
+        });
+        setMessage('breachMessage', error.message, 'error');
+        document.getElementById('breachResults').innerHTML = '';
+    } finally {
+        setLoading(button, false);
+    }
+}
+
+function updateDashboard(result) {
+    const breaches = result.breaches || [];
+    const statusText = document.querySelector('.status-text');
+    const breachList = document.getElementById('breachList');
+    const riskFill = document.querySelector('.risk-fill');
+    const riskText = document.querySelector('.risk-text');
+    const recommendationsList = document.getElementById('recommendationsList');
+
+    document.getElementById('scannedEmail').textContent = result.checkedEmail || '-';
+    document.getElementById('lastChecked').textContent = new Date().toLocaleString();
+
+    if (result.errored) {
+        statusText.textContent = 'Check Failed';
+        statusText.className = 'status-text breached';
+    } else if (result.breached) {
+        statusText.textContent = 'Breaches Found';
+        statusText.className = 'status-text breached';
+    } else {
+        statusText.textContent = 'No Breaches Found';
+        statusText.className = 'status-text safe';
+    }
+
+    if (breaches.length) {
+        breachList.innerHTML = breaches.map((breach) => `
+            <div class="breach-item">
+                <div class="platform">${escapeHtml(breach.name)}</div>
+                <div class="date">${escapeHtml(breach.domain || 'Domain unavailable')}</div>
+            </div>
+        `).join('');
+    } else {
+        breachList.innerHTML = `
+            <div class="no-breaches">
+                <div class="shield-mark" aria-hidden="true">OK</div>
+                <p>${result.errored ? 'Unable to load breach details' : 'No breaches detected'}</p>
+            </div>
+        `;
+    }
+
+    const riskLevel = result.errored ? 15 : calculateRiskLevel(breaches.length);
+    riskFill.style.width = `${riskLevel}%`;
+    riskText.textContent = getRiskLabel(result.errored, breaches.length);
+
+    const recommendations = (result.suggestions?.length ? result.suggestions : DEFAULT_SECURITY_STEPS)
+        .map((suggestion) => `<li>${escapeHtml(suggestion)}</li>`)
+        .join('');
+    recommendationsList.innerHTML = recommendations;
+}
+
+function renderBreachResults(result) {
+    const breaches = result.breaches || [];
+
+    setMessage(
+        'breachMessage',
+        result.breached
+            ? `Found ${result.breachCount} known breach ${result.breachCount === 1 ? 'record' : 'records'} for this email.`
+            : 'No breaches were found for this email.',
+        'success'
+    );
+
+    if (!breaches.length) {
+        document.getElementById('breachResults').innerHTML = `
+            <p class="empty-state">${escapeHtml(result.explanation || 'No breach details are available.')}</p>
+        `;
         return;
     }
-    const button = document.getElementById('loadBreachesBtn');
-    button.classList.add('loading');
-    button.disabled = true;
-    try {
-        const response = await fetch('/auth/breaches', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const result = await response.json();
-        if (response.ok) {
-            document.getElementById('breachesMessage').textContent = 'Your breaches:';
-            document.getElementById('breachesMessage').className = 'success';
-            const breachesHtml = result.breaches.map(breach => 
-                `<div><strong>${breach.email}</strong> - ${breach.sites.join(', ')} (checked on ${new Date(breach.checkedAt).toLocaleDateString()})</div>`
-            ).join('');
-            document.getElementById('breachesList').innerHTML = breachesHtml;
-        } else {
-            document.getElementById('breachesMessage').textContent = result.message;
-            document.getElementById('breachesMessage').className = 'error';
-        }
-    } catch (error) {
-        document.getElementById('breachesMessage').textContent = 'Error: ' + error.message;
-        document.getElementById('breachesMessage').className = 'error';
-    } finally {
-        button.classList.remove('loading');
-        button.disabled = false;
+
+    document.getElementById('breachResults').innerHTML = `
+        <div class="breach-summary">${escapeHtml(result.explanation)}</div>
+        <div class="breach-records">
+            ${breaches.map((breach) => `
+                <div class="breach-record">
+                    <div class="record-title">${escapeHtml(breach.name)}</div>
+                    <div class="record-domain">${escapeHtml(breach.domain || 'Domain unavailable')}</div>
+                    ${breach.dataClasses?.length ? `
+                        <div class="chip-list">
+                            ${breach.dataClasses.map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('')}
+        </div>
+        <ul class="suggestion-list">
+            ${(result.suggestions || DEFAULT_SECURITY_STEPS).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+        </ul>
+    `;
+}
+
+async function fetchBreachData(email) {
+    const result = await fetchJson(`/breach/check-email/${encodeURIComponent(email)}`, {
+        headers: buildHeaders(false)
+    });
+
+    if (!isAuthenticated()) {
+        saveAnonymousCheck(result);
+        displayRecentChecks();
     }
+
+    return result;
+}
+
+function saveAnonymousCheck(result) {
+    const existingChecks = getAnonymousChecks().filter((check) => check.email !== result.checkedEmail);
+    existingChecks.unshift({
+        email: result.checkedEmail,
+        breachCount: result.breachCount,
+        checkedAt: new Date().toISOString()
+    });
+    sessionStorage.setItem(ANONYMOUS_BREACHES_KEY, JSON.stringify(existingChecks.slice(0, 10)));
+}
+
+function getAnonymousChecks() {
+    try {
+        return JSON.parse(sessionStorage.getItem(ANONYMOUS_BREACHES_KEY) || '[]');
+    } catch (error) {
+        return [];
+    }
+}
+
+function displayRecentChecks() {
+    const recent = getAnonymousChecks();
+    const recentDiv = document.getElementById('recentChecks');
+
+    if (!recent.length) {
+        recentDiv.innerHTML = '<p class="empty-state">No recent checks in this tab yet.</p>';
+        return;
+    }
+
+    recentDiv.innerHTML = `
+        <ul>
+            ${recent.map((check) => `
+                <li>
+                    <strong>${escapeHtml(check.email)}</strong> - ${escapeHtml(`${check.breachCount}`)} breach ${check.breachCount === 1 ? 'record' : 'records'} found
+                    (${escapeHtml(new Date(check.checkedAt).toLocaleString())})
+                </li>
+            `).join('')}
+        </ul>
+    `;
+}
+
+function buildHeaders(includeJson = true, includeAuth = true) {
+    const headers = {};
+
+    if (includeJson) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    if (includeAuth) {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+    }
+
+    return headers;
+}
+
+async function fetchJson(url, options = {}) {
+    const response = await fetch(url, options);
+    const contentType = response.headers.get('content-type') || '';
+    let payload = {};
+
+    if (contentType.includes('application/json')) {
+        payload = await response.json();
+    } else {
+        const text = await response.text();
+        payload = text ? { message: text } : {};
+    }
+
+    if (!response.ok) {
+        throw new Error(payload.message || payload.error || 'Request failed.');
+    }
+
+    return payload;
+}
+
+function normalizeEmail(value) {
+    return value.trim().toLowerCase();
+}
+
+function isAuthenticated() {
+    return Boolean(localStorage.getItem(TOKEN_KEY));
+}
+
+function setLoading(button, isLoading) {
+    if (!button) {
+        return;
+    }
+
+    button.classList.toggle('loading', isLoading);
+    button.disabled = isLoading;
+}
+
+function setMessage(elementId, text, tone) {
+    const element = document.getElementById(elementId);
+    element.textContent = text;
+    element.className = tone || '';
+}
+
+function resetAuthMessages() {
+    setMessage('loginMessage', '', '');
+    setMessage('registerMessage', '', '');
+}
+
+function calculateRiskLevel(breachCount) {
+    if (breachCount === 0) {
+        return 8;
+    }
+
+    if (breachCount === 1) {
+        return 35;
+    }
+
+    if (breachCount <= 3) {
+        return 60;
+    }
+
+    return 85;
+}
+
+function getRiskLabel(errored, breachCount) {
+    if (errored) {
+        return 'Unknown';
+    }
+
+    if (breachCount === 0) {
+        return 'Low Risk';
+    }
+
+    if (breachCount === 1) {
+        return 'Medium Risk';
+    }
+
+    if (breachCount <= 3) {
+        return 'Elevated Risk';
+    }
+
+    return 'High Risk';
+}
+
+function escapeHtml(value) {
+    return `${value}`
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+window.addEventListener('load', () => {
+    setAuthenticatedUI(isAuthenticated());
+    displayRecentChecks();
 });
